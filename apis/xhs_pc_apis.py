@@ -4,6 +4,8 @@ import re
 import urllib
 import requests
 from xhs_utils.xhs_util import splice_str, generate_request_params, generate_x_b3_traceid, get_common_headers
+from xhs_utils.data_util import download_note_v2,handle_note_info
+import time
 from loguru import logger
 
 """
@@ -192,7 +194,7 @@ class XHS_Apis():
         return success, msg, res_json
 
 
-    def get_user_all_notes(self, user_url: str, cookies_str: str, cursor: str = '', max_num: int = 0, proxies: dict = None):
+    def get_user_all_notes(self, base_path: dict, user_url: str, cookies_str: str, cursor: str = '', max_num: int = 0, proxies: dict = None):
         """
            获取用户所有笔记
            :param user_id: 你想要获取的用户的id
@@ -217,6 +219,20 @@ class XHS_Apis():
                 else:
                     break
                 note_list.extend(notes)
+
+                # 下载笔记
+                for note in notes:
+                    logger.info(f'处理笔记：{note['note_id']}， cursor: {cursor}')
+                    note_url = f"https://www.xiaohongshu.com/explore/{note['note_id']}?xsec_token={note['xsec_token']}"
+                    success, msg, note_info = self.get_note_info(note_url, cookies_str, proxies)
+                    if success:
+                        note_info = note_info['data']['items'][0]
+                        note_info['url'] = note_url
+                        note_info = handle_note_info(note_info)
+                        download_note_v2(note_info, base_path['media'], 'media')
+                        time.sleep(0.1)
+                    else :
+                        logger.info(f'获取笔记信息失败：{note['note_id']}')
                 if len(notes) == 0 or not res_json["data"]["has_more"]:
                     break
                 # 限制笔记数量

@@ -4,7 +4,7 @@ from loguru import logger
 from apis.xhs_pc_apis import XHS_Apis
 from xhs_utils.common_util import init
 from xhs_utils.data_util import handle_note_info, download_note_v2, save_to_xlsx
-
+import time
 
 class Data_Spider():
     def __init__(self):
@@ -49,6 +49,7 @@ class Data_Spider():
             if save_choice == 'all' or 'media' in save_choice:
                 # download_note(note_info, base_path['media'], save_choice)
                 download_note_v2(note_info, base_path['media'], save_choice)
+                time.sleep(0.1)
         if save_choice == 'all' or save_choice == 'excel':
             file_path = os.path.abspath(os.path.join(base_path['excel'], f'{excel_name}.xlsx'))
             save_to_xlsx(note_list, file_path)
@@ -64,15 +65,8 @@ class Data_Spider():
         """
         note_list = []
         try:
-            success, msg, all_note_info = self.xhs_apis.get_user_all_notes(user_url, cookies_str, cursor, max_num, proxies)
-            if success:
-                logger.info(f'用户 {user_url} 作品总数: {len(all_note_info)}')
-                for simple_note_info in all_note_info:
-                    note_url = f"https://www.xiaohongshu.com/explore/{simple_note_info['note_id']}?xsec_token={simple_note_info['xsec_token']}"
-                    note_list.append(note_url)
-            if save_choice == 'all' or save_choice == 'excel':
-                excel_name = user_url.split('/')[-1].split('?')[0]
-            self.spider_some_note(note_list, cookies_str, base_path, save_choice, excel_name, proxies)
+            success, msg, all_note_info = self.xhs_apis.get_user_all_notes(base_path, user_url, cookies_str, cursor, max_num, proxies)
+            logger.info(f'用户 {user_url} 作品总数: {len(all_note_info)}')
         except Exception as e:
             success = False
             msg = e

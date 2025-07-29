@@ -3,7 +3,7 @@ import os
 from loguru import logger
 from apis.xhs_pc_apis import XHS_Apis
 from xhs_utils.common_util import init
-from xhs_utils.data_util import handle_note_info, download_note, save_to_xlsx
+from xhs_utils.data_util import handle_note_info, download_note_v2, save_to_xlsx
 
 
 class Data_Spider():
@@ -47,13 +47,14 @@ class Data_Spider():
                 note_list.append(note_info)
         for note_info in note_list:
             if save_choice == 'all' or 'media' in save_choice:
-                download_note(note_info, base_path['media'], save_choice)
+                # download_note(note_info, base_path['media'], save_choice)
+                download_note_v2(note_info, base_path['media'], save_choice)
         if save_choice == 'all' or save_choice == 'excel':
             file_path = os.path.abspath(os.path.join(base_path['excel'], f'{excel_name}.xlsx'))
             save_to_xlsx(note_list, file_path)
 
 
-    def spider_user_all_note(self, user_url: str, cookies_str: str, base_path: dict, save_choice: str, excel_name: str = '', proxies=None):
+    def spider_user_all_note(self, user_url: str, cookies_str: str, base_path: dict, save_choice: str, cursor: str = '', max_num: int = 0, excel_name: str = '', proxies=None):
         """
         爬取一个用户的所有笔记
         :param user_url:
@@ -63,9 +64,9 @@ class Data_Spider():
         """
         note_list = []
         try:
-            success, msg, all_note_info = self.xhs_apis.get_user_all_notes(user_url, cookies_str, proxies)
+            success, msg, all_note_info = self.xhs_apis.get_user_all_notes(user_url, cookies_str, cursor, max_num, proxies)
             if success:
-                logger.info(f'用户 {user_url} 作品数量: {len(all_note_info)}')
+                logger.info(f'用户 {user_url} 作品总数: {len(all_note_info)}')
                 for simple_note_info in all_note_info:
                     note_url = f"https://www.xiaohongshu.com/explore/{simple_note_info['note_id']}?xsec_token={simple_note_info['xsec_token']}"
                     note_list.append(note_url)
@@ -75,7 +76,7 @@ class Data_Spider():
         except Exception as e:
             success = False
             msg = e
-        logger.info(f'爬取用户所有视频 {user_url}: {success}, msg: {msg}')
+        logger.info(f'爬取用户所有视频 {user_url}: {success}, 作品总数: {len(all_note_info)}, msg: {msg}')
         return note_list, success, msg
 
     def spider_some_search_note(self, query: str, require_num: int, cookies_str: str, base_path: dict, save_choice: str, sort_type_choice=0, note_type=0, note_time=0, note_range=0, pos_distance=0, geo: dict = None,  excel_name: str = '', proxies=None):
@@ -127,26 +128,27 @@ if __name__ == '__main__':
 
 
     # 1 爬取列表的所有笔记信息 笔记链接 如下所示 注意此url会过期！
-    notes = [
-        r'https://www.xiaohongshu.com/explore/683fe17f0000000023017c6a?xsec_token=ABBr_cMzallQeLyKSRdPk9fwzA0torkbT_ubuQP1ayvKA=&xsec_source=pc_user',
-    ]
-    data_spider.spider_some_note(notes, cookies_str, base_path, 'all', 'test')
+    # notes = [
+    #     r'https://www.xiaohongshu.com/explore/6816d68c000000000d01689f?xsec_token=ABgt0A6PedrEUC6QrdrZT2x3D3StSALzakc0pZO7wuqzg=&xsec_source=pc_user',
+    #     r'https://www.xiaohongshu.com/explore/6817705e000000000c03b21a?xsec_token=ABmTa5w53mHVDxlsDhRI6KYV6cEaE2CUXNy5jh2Owx73w=&xsec_source=pc_user',
+    # ]
+    # data_spider.spider_some_note(notes, cookies_str, base_path, 'media')
 
-    # 2 爬取用户的所有笔记信息 用户链接 如下所示 注意此url会过期！
-    user_url = 'https://www.xiaohongshu.com/user/profile/64c3f392000000002b009e45?xsec_token=AB-GhAToFu07JwNk_AMICHnp7bSTjVz2beVIDBwSyPwvM=&xsec_source=pc_feed'
-    data_spider.spider_user_all_note(user_url, cookies_str, base_path, 'all')
+    # # 2 爬取用户的所有笔记信息 用户链接 如下所示 注意此url会过期！
+    user_url = 'https://www.xiaohongshu.com/user/profile/5c6a8d3b00000000120043fc?xsec_token=YBarE2Vmzqk8ikbDoFhuaWzsT0f394Yf85HT8a43cSBnc=&xsec_source=app_share&xhsshare=WeixinSession&appuid=5b65c4016b58b775d8ae4755&apptime=1753511808&share_id=070e78ecdaa343c0a49df12020738be4'
+    data_spider.spider_user_all_note(user_url, cookies_str, base_path, 'media', '', 500)
 
     # 3 搜索指定关键词的笔记
-    query = "榴莲"
-    query_num = 10
-    sort_type_choice = 0  # 0 综合排序, 1 最新, 2 最多点赞, 3 最多评论, 4 最多收藏
-    note_type = 0 # 0 不限, 1 视频笔记, 2 普通笔记
-    note_time = 0  # 0 不限, 1 一天内, 2 一周内天, 3 半年内
-    note_range = 0  # 0 不限, 1 已看过, 2 未看过, 3 已关注
-    pos_distance = 0  # 0 不限, 1 同城, 2 附近 指定这个1或2必须要指定 geo
-    # geo = {
-    #     # 经纬度
-    #     "latitude": 39.9725,
-    #     "longitude": 116.4207
-    # }
-    data_spider.spider_some_search_note(query, query_num, cookies_str, base_path, 'all', sort_type_choice, note_type, note_time, note_range, pos_distance, geo=None)
+    # query = "榴莲"
+    # query_num = 10
+    # sort_type_choice = 0  # 0 综合排序, 1 最新, 2 最多点赞, 3 最多评论, 4 最多收藏
+    # note_type = 0 # 0 不限, 1 视频笔记, 2 普通笔记
+    # note_time = 0  # 0 不限, 1 一天内, 2 一周内天, 3 半年内
+    # note_range = 0  # 0 不限, 1 已看过, 2 未看过, 3 已关注
+    # pos_distance = 0  # 0 不限, 1 同城, 2 附近 指定这个1或2必须要指定 geo
+    # # geo = {
+    # #     # 经纬度
+    # #     "latitude": 39.9725,
+    # #     "longitude": 116.4207
+    # # }
+    # data_spider.spider_some_search_note(query, query_num, cookies_str, base_path, 'all', sort_type_choice, note_type, note_time, note_range, pos_distance, geo=None)

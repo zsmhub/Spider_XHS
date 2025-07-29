@@ -192,14 +192,13 @@ class XHS_Apis():
         return success, msg, res_json
 
 
-    def get_user_all_notes(self, user_url: str, cookies_str: str, proxies: dict = None):
+    def get_user_all_notes(self, user_url: str, cookies_str: str, cursor: str = '', max_num: int = 0, proxies: dict = None):
         """
            获取用户所有笔记
            :param user_id: 你想要获取的用户的id
            :param cookies_str: 你的cookies
            返回用户的所有笔记
         """
-        cursor = ''
         note_list = []
         try:
             urlParse = urllib.parse.urlparse(user_url)
@@ -219,6 +218,9 @@ class XHS_Apis():
                     break
                 note_list.extend(notes)
                 if len(notes) == 0 or not res_json["data"]["has_more"]:
+                    break
+                # 限制笔记数量
+                if max_num > 0 and len(note_list) > max_num:
                     break
         except Exception as e:
             success = False
@@ -1012,7 +1014,3 @@ if __name__ == '__main__':
     note_url = r'https://www.xiaohongshu.com/explore/67d7c713000000000900e391?xsec_token=AB1ACxbo5cevHxV_bWibTmK8R1DDz0NnAW1PbFZLABXtE=&xsec_source=pc_user'
     success, msg, note_all_comment = xhs_apis.get_note_all_comment(note_url, cookies_str)
     logger.info(f'获取笔记评论结果 {json.dumps(note_all_comment, ensure_ascii=False)}: {success}, msg: {msg}')
-
-
-
-

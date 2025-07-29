@@ -245,7 +245,7 @@ def save_note_detail(note, path):
         f.write(f"ip归属地: {note['ip_location']}\n")
 
 
-
+# 下载笔记信息到文件夹，并下载媒体文件到文件夹
 @retry(tries=3, delay=1)
 def download_note(note_info, path, save_choice):
     note_id = note_info['note_id']
@@ -268,6 +268,21 @@ def download_note(note_info, path, save_choice):
     elif note_type == '视频' and save_choice in ['media', 'media-video', 'all']:
         download_media(save_path, 'cover', note_info['video_cover'], 'image')
         download_media(save_path, 'video', note_info['video_addr'], 'video')
+    return save_path
+
+# 直接下载媒体文件到文件夹，不存储笔记信息
+@retry(tries=3, delay=1)
+def download_note_v2(note_info, path, save_choice):
+    note_id = note_info['note_id']
+    user_id = note_info['user_id']
+    save_path = f'{path}/{user_id}'
+    check_and_create_path(save_path)
+    note_type = note_info['note_type']
+    if note_type == '图集' and save_choice in ['media', 'media-image', 'all']:
+        for img_index, img_url in enumerate(note_info['image_list']):
+            download_media(save_path, f'image_{note_id}_{img_index}', img_url, 'image')
+    elif note_type == '视频' and save_choice in ['media', 'media-video', 'all']:
+        download_media(save_path, f'video_{note_id}', note_info['video_addr'], 'video')
     return save_path
 
 

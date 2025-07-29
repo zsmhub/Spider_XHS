@@ -7,6 +7,7 @@ from xhs_utils.xhs_util import splice_str, generate_request_params, generate_x_b
 from xhs_utils.data_util import download_note_v2,handle_note_info
 import time
 from loguru import logger
+import random
 
 """
     获小红书的api
@@ -230,9 +231,9 @@ class XHS_Apis():
                         note_info['url'] = note_url
                         note_info = handle_note_info(note_info)
                         download_note_v2(note_info, base_path['media'], 'media')
-                        time.sleep(0.1)
                     else :
                         logger.info(f'获取笔记信息失败：{note['note_id']}')
+                    time.sleep(random.uniform(1, 5))
                 if len(notes) == 0 or not res_json["data"]["has_more"]:
                     break
                 # 限制笔记数量

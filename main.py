@@ -5,6 +5,7 @@ from apis.xhs_pc_apis import XHS_Apis
 from xhs_utils.common_util import init
 from xhs_utils.data_util import handle_note_info, download_note_v2, save_to_xlsx
 import time
+import random
 
 class Data_Spider():
     def __init__(self):
@@ -45,11 +46,12 @@ class Data_Spider():
             success, msg, note_info = self.spider_note(note_url, cookies_str, proxies)
             if note_info is not None and success:
                 note_list.append(note_info)
+            time.sleep(random.uniform(1, 5))
         for note_info in note_list:
             if save_choice == 'all' or 'media' in save_choice:
                 # download_note(note_info, base_path['media'], save_choice)
                 download_note_v2(note_info, base_path['media'], save_choice)
-                time.sleep(0.1)
+                time.sleep(random.uniform(1, 5))
         if save_choice == 'all' or save_choice == 'excel':
             file_path = os.path.abspath(os.path.join(base_path['excel'], f'{excel_name}.xlsx'))
             save_to_xlsx(note_list, file_path)

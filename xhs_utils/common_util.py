@@ -1,10 +1,29 @@
 import os
+import json
+import random
 from loguru import logger
 from dotenv import load_dotenv
 
-def load_env():
+def get_cookies():
     load_dotenv()
     cookies_str = os.getenv('COOKIES')
+
+    # 尝试解析为 JSON 数组
+    if cookies_str:
+        try:
+            cookies_array = json.loads(cookies_str)
+            if isinstance(cookies_array, list) and len(cookies_array) > 0:
+                # 随机选择一个 cookie
+                selected_cookie = random.choice(cookies_array)
+                logger.info(f'从 {len(cookies_array)} 个 cookies 中随机选择了一个: {selected_cookie[-6:]}')
+                return selected_cookie
+            else:
+                logger.warning('COOKIES 环境变量不是有效的数组格式，使用原始字符串')
+                return cookies_str
+        except json.JSONDecodeError:
+            logger.warning('COOKIES 环境变量不是有效的 JSON 格式，使用原始字符串')
+            return cookies_str
+
     return cookies_str
 
 def init():
@@ -14,9 +33,8 @@ def init():
         if not os.path.exists(base_path):
             os.makedirs(base_path)
             logger.info(f'创建目录 {base_path}')
-    cookies_str = load_env()
     base_path = {
         'media': media_base_path,
         'excel': excel_base_path,
     }
-    return cookies_str, base_path
+    return base_path

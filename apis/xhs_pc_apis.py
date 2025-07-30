@@ -8,6 +8,7 @@ from xhs_utils.data_util import download_note_v2,handle_note_info
 import time
 from loguru import logger
 import random
+from xhs_utils.common_util import get_cookies
 
 """
     获小红书的api
@@ -195,11 +196,10 @@ class XHS_Apis():
         return success, msg, res_json
 
 
-    def get_user_all_notes(self, base_path: dict, user_url: str, cookies_str: str, cursor: str = '', max_num: int = 0, proxies: dict = None):
+    def get_user_all_notes(self, base_path: dict, user_url: str, cursor: str = '', max_num: int = 0, proxies: dict = None):
         """
            获取用户所有笔记
            :param user_id: 你想要获取的用户的id
-           :param cookies_str: 你的cookies
            返回用户的所有笔记
         """
         note_list = []
@@ -211,6 +211,7 @@ class XHS_Apis():
             xsec_token = kvDist['xsec_token'] if 'xsec_token' in kvDist else ""
             xsec_source = kvDist['xsec_source'] if 'xsec_source' in kvDist else "pc_search"
             while True:
+                cookies_str = get_cookies()
                 success, msg, res_json = self.get_user_note_info(user_id, cursor, cookies_str, xsec_token, xsec_source, proxies)
                 if not success:
                     raise Exception(msg)
@@ -229,6 +230,7 @@ class XHS_Apis():
                 # 下载笔记
                 for note in notes:
                     logger.info(f'处理笔记：{note['note_id']}， cursor: {cursor}')
+                    cookies_str = get_cookies()
                     note_url = f"https://www.xiaohongshu.com/explore/{note['note_id']}?xsec_token={note['xsec_token']}"
                     success, msg, note_info = self.get_note_info(note_url, cookies_str, proxies)
                     if success:
@@ -1015,7 +1017,7 @@ if __name__ == '__main__':
     user_url = 'https://www.xiaohongshu.com/user/profile/67a332a2000000000d008358?xsec_token=ABTf9yz4cLHhTycIlksF0jOi1yIZgfcaQ6IXNNGdKJ8xg=&xsec_source=pc_feed'
     success, msg, user_info = xhs_apis.get_user_info('67a332a2000000000d008358', cookies_str)
     logger.info(f'获取用户信息结果 {json.dumps(user_info, ensure_ascii=False)}: {success}, msg: {msg}')
-    success, msg, note_list = xhs_apis.get_user_all_notes(user_url, cookies_str)
+    success, msg, note_list = xhs_apis.get_user_all_notes(user_url)
     logger.info(f'获取用户所有笔记结果 {json.dumps(note_list, ensure_ascii=False)}: {success}, msg: {msg}')
     # 获取笔记信息
     note_url = r'https://www.xiaohongshu.com/explore/67d7c713000000000900e391?xsec_token=AB1ACxbo5cevHxV_bWibTmK8R1DDz0NnAW1PbFZLABXtE=&xsec_source=pc_user'

@@ -2,7 +2,7 @@ import json
 import os
 from loguru import logger
 from apis.xhs_pc_apis import XHS_Apis
-from xhs_utils.common_util import init
+from xhs_utils.common_util import init,get_cookies
 from xhs_utils.data_util import handle_note_info, download_note_v2, save_to_xlsx
 import time
 import random
@@ -11,15 +11,15 @@ class Data_Spider():
     def __init__(self):
         self.xhs_apis = XHS_Apis()
 
-    def spider_note(self, note_url: str, cookies_str: str, proxies=None):
+    def spider_note(self, note_url: str, proxies=None):
         """
         爬取一个笔记的信息
         :param note_url:
-        :param cookies_str:
         :return:
         """
         note_info = None
         try:
+            cookies_str = get_cookies()
             success, msg, note_info = self.xhs_apis.get_note_info(note_url, cookies_str, proxies)
             if success:
                 note_info = note_info['data']['items'][0]
@@ -31,11 +31,10 @@ class Data_Spider():
         logger.info(f'爬取笔记信息 {note_url}: {success}, msg: {msg}')
         return success, msg, note_info
 
-    def spider_some_note(self, notes: list, cookies_str: str, base_path: dict, save_choice: str, excel_name: str = '', proxies=None):
+    def spider_some_note(self, notes: list, base_path: dict, save_choice: str, excel_name: str = '', proxies=None):
         """
         爬取一些笔记的信息
         :param notes:
-        :param cookies_str:
         :param base_path:
         :return:
         """
@@ -43,6 +42,7 @@ class Data_Spider():
             raise ValueError('excel_name 不能为空')
         note_list = []
         for note_url in notes:
+            cookies_str = get_cookies()
             success, msg, note_info = self.spider_note(note_url, cookies_str, proxies)
             if note_info is not None and success:
                 note_list.append(note_info)
@@ -57,29 +57,27 @@ class Data_Spider():
             save_to_xlsx(note_list, file_path)
 
 
-    def spider_user_all_note(self, user_url: str, cookies_str: str, base_path: dict, save_choice: str, cursor: str = '', max_num: int = 0, excel_name: str = '', proxies=None):
+    def spider_user_all_note(self, user_url: str, base_path: dict, cursor: str = '', max_num: int = 0, proxies=None):
         """
         爬取一个用户的所有笔记
         :param user_url:
-        :param cookies_str:
         :param base_path:
         :return:
         """
         note_list = []
         try:
-            success, msg, all_note_info = self.xhs_apis.get_user_all_notes(base_path, user_url, cookies_str, cursor, max_num, proxies)
+            success, msg, all_note_info = self.xhs_apis.get_user_all_notes(base_path, user_url, cursor, max_num, proxies)
         except Exception as e:
             success = False
             msg = e
         logger.info(f'爬取用户所有视频 {user_url}: {success}, 作品总数: {len(all_note_info)}, msg: {msg}')
         return note_list, success, msg
 
-    def spider_some_search_note(self, query: str, require_num: int, cookies_str: str, base_path: dict, save_choice: str, sort_type_choice=0, note_type=0, note_time=0, note_range=0, pos_distance=0, geo: dict = None,  excel_name: str = '', proxies=None):
+    def spider_some_search_note(self, query: str, require_num: int, base_path: dict, save_choice: str, sort_type_choice=0, note_type=0, note_time=0, note_range=0, pos_distance=0, geo: dict = None,  excel_name: str = '', proxies=None):
         """
             指定数量搜索笔记，设置排序方式和笔记类型和笔记数量
             :param query 搜索的关键词
             :param require_num 搜索的数量
-            :param cookies_str 你的cookies
             :param base_path 保存路径
             :param sort_type_choice 排序方式 0 综合排序, 1 最新, 2 最多点赞, 3 最多评论, 4 最多收藏
             :param note_type 笔记类型 0 不限, 1 视频笔记, 2 普通笔记
@@ -90,6 +88,7 @@ class Data_Spider():
         """
         note_list = []
         try:
+            cookies_str = get_cookies()
             success, msg, notes = self.xhs_apis.search_some_note(query, require_num, cookies_str, sort_type_choice, note_type, note_time, note_range, pos_distance, geo, proxies)
             if success:
                 notes = list(filter(lambda x: x['model_type'] == "note", notes))
@@ -114,7 +113,7 @@ if __name__ == '__main__':
         感谢star和follow
     """
 
-    cookies_str, base_path = init()
+    base_path = init()
     data_spider = Data_Spider()
     """
         save_choice: all: 保存所有的信息, media: 保存视频和图片（media-video只下载视频, media-image只下载图片，media都下载）, excel: 保存到excel
@@ -127,12 +126,11 @@ if __name__ == '__main__':
     #     r'https://www.xiaohongshu.com/explore/6816d68c000000000d01689f?xsec_token=ABgt0A6PedrEUC6QrdrZT2x3D3StSALzakc0pZO7wuqzg=&xsec_source=pc_user',
     #     r'https://www.xiaohongshu.com/explore/6817705e000000000c03b21a?xsec_token=ABmTa5w53mHVDxlsDhRI6KYV6cEaE2CUXNy5jh2Owx73w=&xsec_source=pc_user',
     # ]
-    # data_spider.spider_some_note(notes, cookies_str, base_path, 'media')
+    # data_spider.spider_some_note(notes, base_path, 'media')
 
-    # # 2 爬取用户的所有笔记信息 用户链接 如下所示 注意此url会过期！
-    # user_url = 'https://www.xiaohongshu.com/user/profile/64023014000000001001cf0b?xsec_token=YBXHmn3Iqseew_NqndZFJPxNq0154azjvM6XN4EwimnkY=&xsec_source=app_share&xhsshare=WeixinSession&appuid=5b65c4016b58b775d8ae4755&apptime=1753511930&share_id=2e2d56594c934d66b6eada5c449cb6aa'
-    user_url = 'https://www.xiaohongshu.com/user/profile/5c2e9f5f00000000060136d4?channel_type=explore_feed&parent_page_channel_type=web_user_board&xsec_token=ABZgxB445IFOxaWCIAefEoNM2KQWQ0azKh8pqvhssaP0s=&xsec_source=pc_feed'
-    data_spider.spider_user_all_note(user_url, cookies_str, base_path, 'media', '', 100)
+    # 2 爬取用户的所有笔记信息 用户链接 如下所示 注意此url会过期！
+    user_url = 'https://www.xiaohongshu.com/user/profile/64606b880000000012035d16?xsec_token=ABZEzSkkn08UfffljddMF-QYN-qMHFZmsu551QFMYpsTE=&xsec_source=pc_note'
+    data_spider.spider_user_all_note(user_url, base_path, '', 100)
 
     # 3 搜索指定关键词的笔记
     # query = "榴莲"
@@ -147,4 +145,4 @@ if __name__ == '__main__':
     # #     "latitude": 39.9725,
     # #     "longitude": 116.4207
     # # }
-    # data_spider.spider_some_search_note(query, query_num, cookies_str, base_path, 'all', sort_type_choice, note_type, note_time, note_range, pos_distance, geo=None)
+    # data_spider.spider_some_search_note(query, query_num, base_path, 'all', sort_type_choice, note_type, note_time, note_range, pos_distance, geo=None)

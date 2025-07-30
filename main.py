@@ -68,7 +68,6 @@ class Data_Spider():
         note_list = []
         try:
             success, msg, all_note_info = self.xhs_apis.get_user_all_notes(base_path, user_url, cookies_str, cursor, max_num, proxies)
-            logger.info(f'用户 {user_url} 作品总数: {len(all_note_info)}')
         except Exception as e:
             success = False
             msg = e
@@ -131,8 +130,9 @@ if __name__ == '__main__':
     # data_spider.spider_some_note(notes, cookies_str, base_path, 'media')
 
     # # 2 爬取用户的所有笔记信息 用户链接 如下所示 注意此url会过期！
-    user_url = 'https://www.xiaohongshu.com/user/profile/5c6a8d3b00000000120043fc?xsec_token=YBarE2Vmzqk8ikbDoFhuaWzsT0f394Yf85HT8a43cSBnc=&xsec_source=app_share&xhsshare=WeixinSession&appuid=5b65c4016b58b775d8ae4755&apptime=1753511808&share_id=070e78ecdaa343c0a49df12020738be4'
-    data_spider.spider_user_all_note(user_url, cookies_str, base_path, 'media', '', 500)
+    # user_url = 'https://www.xiaohongshu.com/user/profile/64023014000000001001cf0b?xsec_token=YBXHmn3Iqseew_NqndZFJPxNq0154azjvM6XN4EwimnkY=&xsec_source=app_share&xhsshare=WeixinSession&appuid=5b65c4016b58b775d8ae4755&apptime=1753511930&share_id=2e2d56594c934d66b6eada5c449cb6aa'
+    user_url = 'https://www.xiaohongshu.com/user/profile/5c2e9f5f00000000060136d4?channel_type=explore_feed&parent_page_channel_type=web_user_board&xsec_token=ABZgxB445IFOxaWCIAefEoNM2KQWQ0azKh8pqvhssaP0s=&xsec_source=pc_feed'
+    data_spider.spider_user_all_note(user_url, cookies_str, base_path, 'media', '', 100)
 
     # 3 搜索指定关键词的笔记
     # query = "榴莲"

@@ -49,7 +49,7 @@
 - 🎨 **便捷管理**
   - 结构化目录存储
   - 格式化输出（JSON/EXCEL/MEDIA）
-  
+
 ## 🎨效果图
 ### 处理后的所有用户
 ![image](https://github.com/cv-cat/Spider_XHS/assets/94289429/00902dbd-4da1-45bc-90bb-19f5856a04ad)
@@ -80,6 +80,8 @@ npm install
 
 ### 🚀运行项目
 ```
+python3 -m venv venv
+source venv/bin/activate
 python main.py
 ```
 
@@ -90,7 +92,7 @@ python main.py
 
 
 ## 🍥日志
-   
+
 | 日期       | 说明                                        |
 |----------|-------------------------------------------|
 | 23/08/09 | - 首次提交                                    |
@@ -129,5 +131,3 @@ python main.py
    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=cv-cat/Spider_XHS&type=Date" />
  </picture>
 </a>
-
-

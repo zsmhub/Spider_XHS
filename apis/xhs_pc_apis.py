@@ -214,10 +214,15 @@ class XHS_Apis():
                 success, msg, res_json = self.get_user_note_info(user_id, cursor, cookies_str, xsec_token, xsec_source, proxies)
                 if not success:
                     raise Exception(msg)
-                notes = res_json["data"]["notes"]
-                if 'cursor' in res_json["data"]:
-                    cursor = str(res_json["data"]["cursor"])
+                if 'notes' in res_json["data"]:
+                    notes = res_json["data"]["notes"]
                 else:
+                    logger.info(f'响应结果中的notes字段不存在，一般是cookies失效了')
+                    break
+                if 'cursor' in res_json["data"]:
+                    cursor = str(res_json["data"]["cursor"]) # cursor为空则说明没有下一页了
+                else:
+                    logger.info(f'响应结果中的cursor字段不存在，一般是cookies失效了')
                     break
                 note_list.extend(notes)
 

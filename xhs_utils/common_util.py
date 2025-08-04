@@ -15,7 +15,7 @@ def get_cookies():
             if isinstance(cookies_array, list) and len(cookies_array) > 0:
                 # 随机选择一个 cookie
                 selected_cookie = random.choice(cookies_array)
-                logger.info(f'从 {len(cookies_array)} 个 cookies 中随机选择了一个: {selected_cookie[-6:]}')
+                logger.info(f'从 {len(cookies_array)} 个 cookies 中随机选择了一个: {selected_cookie[-32:]}')
                 return selected_cookie
             else:
                 logger.warning('COOKIES 环境变量不是有效的数组格式，使用原始字符串')

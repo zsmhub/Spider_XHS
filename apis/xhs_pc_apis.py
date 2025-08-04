@@ -229,18 +229,21 @@ class XHS_Apis():
 
                 # 下载笔记
                 for note in notes:
-                    logger.info(f'处理笔记：{note['note_id']}， cursor: {cursor}')
+                    time.sleep(random.uniform(1, 5))
+                    logger.info(f'处理笔记：{note['note_id']}，next cursor: {cursor}')
                     cookies_str = get_cookies()
                     note_url = f"https://www.xiaohongshu.com/explore/{note['note_id']}?xsec_token={note['xsec_token']}"
                     success, msg, note_info = self.get_note_info(note_url, cookies_str, proxies)
                     if success:
+                        if "items" not in note_info["data"]:
+                            raise Exception("响应结果中的items字段不存在，一般是cookies失效了")
                         note_info = note_info['data']['items'][0]
                         note_info['url'] = note_url
                         note_info = handle_note_info(note_info)
                         download_note_v2(note_info, base_path['media'], 'media')
                     else :
                         logger.info(f'获取笔记信息失败：{note['note_id']}')
-                    time.sleep(random.uniform(1, 5))
+
                 if len(notes) == 0 or not res_json["data"]["has_more"]:
                     break
                 # 限制笔记数量

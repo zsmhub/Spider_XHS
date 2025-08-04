@@ -22,9 +22,13 @@ class Data_Spider():
             cookies_str = get_cookies()
             success, msg, note_info = self.xhs_apis.get_note_info(note_url, cookies_str, proxies)
             if success:
-                note_info = note_info['data']['items'][0]
-                note_info['url'] = note_url
-                note_info = handle_note_info(note_info)
+                if 'items' in note_info["data"]:
+                    note_info = note_info['data']['items'][0]
+                    note_info['url'] = note_url
+                    note_info = handle_note_info(note_info)
+                else:
+                    msg = '响应结果中的items字段不存在，一般是cookies失效了'
+                    success = False
         except Exception as e:
             success = False
             msg = e
@@ -42,8 +46,7 @@ class Data_Spider():
             raise ValueError('excel_name 不能为空')
         note_list = []
         for note_url in notes:
-            cookies_str = get_cookies()
-            success, msg, note_info = self.spider_note(note_url, cookies_str, proxies)
+            success, _, note_info = self.spider_note(note_url, proxies)
             if note_info is not None and success:
                 note_list.append(note_info)
             time.sleep(random.uniform(1, 5))
@@ -123,14 +126,14 @@ if __name__ == '__main__':
 
     # 1 爬取列表的所有笔记信息 笔记链接 如下所示 注意此url会过期！
     # notes = [
-    #     r'https://www.xiaohongshu.com/explore/6816d68c000000000d01689f?xsec_token=ABgt0A6PedrEUC6QrdrZT2x3D3StSALzakc0pZO7wuqzg=&xsec_source=pc_user',
-    #     r'https://www.xiaohongshu.com/explore/6817705e000000000c03b21a?xsec_token=ABmTa5w53mHVDxlsDhRI6KYV6cEaE2CUXNy5jh2Owx73w=&xsec_source=pc_user',
+    #     r'https://www.xiaohongshu.com/discovery/item/688cacd200000000250293cf?xsec_token=AB_Hue9a4SflhvXj9IltbVQwixU-3f_z9QN2LApr3mAuQ=',
     # ]
     # data_spider.spider_some_note(notes, base_path, 'media')
 
     # 2 爬取用户的所有笔记信息 用户链接 如下所示 注意此url会过期！
-    user_url = 'https://www.xiaohongshu.com/user/profile/64606b880000000012035d16?xsec_token=ABZEzSkkn08UfffljddMF-QYN-qMHFZmsu551QFMYpsTE=&xsec_source=pc_note'
-    data_spider.spider_user_all_note(user_url, base_path, '', 100)
+    cursor = '' # TODO: 按需调整
+    user_url = 'https://www.xiaohongshu.com/user/profile/6724229e000000001c018392?xsec_token=ABua_9S2baBE0KijJBl_uObr9LziJTXGAP-W3ZS6CUGuE='
+    data_spider.spider_user_all_note(user_url, base_path, cursor, 100)
 
     # 3 搜索指定关键词的笔记
     # query = "榴莲"

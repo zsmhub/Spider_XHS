@@ -289,3 +289,5 @@ def download_note_v2(note_info, path, save_choice):
 def check_and_create_path(path):
     if not os.path.exists(path):
         os.makedirs(path)
+    else:
+        logger.info('该账号文件夹已存在，请勿重复下载')
